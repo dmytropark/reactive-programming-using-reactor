@@ -12,6 +12,6 @@ public class FluxAndMonoGeneratorService {
     }
 
     public Mono<String> nameMono() {
-        return Mono.just("Daria");
+        return Mono.just("alex");
     }
 }
