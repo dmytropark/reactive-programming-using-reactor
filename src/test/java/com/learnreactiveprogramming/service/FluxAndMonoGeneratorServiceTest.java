@@ -58,10 +58,25 @@ public class FluxAndMonoGeneratorServiceTest {
 
     @Test
     void namesMono_flatmap() {
-        var flux = service.namesMono_flatmap();
+        var flux = service.namesFlux_flatmap();
         StepVerifier.create(flux)
                 .expectNext("A", "L", "E", "X", "B", "E", "N")
                 .verifyComplete();
+    }
 
+    @Test
+    void namesFlux_flatmap_with_delay() {
+        var flux = service.namesFlux_flatmap_with_delay();
+        StepVerifier.create(flux)
+                .expectNextCount(7)
+                .verifyComplete();
+    }
+
+    @Test
+    void namesFlux_concatMap_with_delay() {
+        var flux = service.namesFlux_concatMap_with_delay();
+        StepVerifier.create(flux)
+                .expectNext("A", "L", "E", "X", "B", "E", "N")
+                .verifyComplete();
     }
 }
