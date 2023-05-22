@@ -1,5 +1,6 @@
 package com.learnreactiveprogramming.service;
 
+import lombok.extern.slf4j.Slf4j;
 import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
 
@@ -8,6 +9,7 @@ import java.util.List;
 import java.util.Random;
 import java.util.function.Function;
 
+@Slf4j
 public class FluxAndMonoGeneratorService {
 
     public Flux<String> namesFlux() {
@@ -145,6 +147,67 @@ public class FluxAndMonoGeneratorService {
         var aMono = Mono.just("A");
         var bMono = Mono.just("B");
         return aMono.concatWith(bMono);
+    }
+
+    public Flux<String> exception_flux() {
+        return Flux.just("A", "B", "C")
+                .concatWith(Flux.error(new RuntimeException("Exception Occurred")))
+                .concatWith(Flux.just("D"))
+                .log();
+    }
+
+    public Flux<String> exception_onErrorReturn() {
+        return Flux.just("A", "B", "C")
+                .concatWith(Flux.error(new IllegalStateException("Exception Occurred")))
+                .onErrorReturn("D")
+                .log();
+    }
+
+    public Flux<String> exception_onErrorResume(Exception e) {
+        var recoveryFlux = Flux.just("D", "E", "F");
+
+        return Flux.just("A", "B", "C")
+                .concatWith(Flux.error(e))
+                .onErrorResume(ex -> {
+                    log.error("Exception is ", ex);
+
+                    if (e instanceof IllegalStateException) {
+                        return recoveryFlux;
+                    } else {
+                        return Flux.error(e);
+                    }
+                })
+                .log();
+    }
+
+    public Flux<String> exception_onErrorContinue() {
+        return Flux.just("A", "B", "C")
+                .map(name -> {
+                    if(name.equals("B")) {
+                        throw new IllegalStateException("Exception Occurred");
+                    }
+
+                    return name;
+                })
+                .concatWith(Flux.just("D"))
+                .onErrorContinue((ex, name) -> {
+                    log.error("Error is", ex);
+                    log.info("Name is {}", name);
+                })
+                .log();
+    }
+
+    public Flux<String> exception_onErrorMap() {
+        //TODO catch the exception and transform it to some custom exception type.
+        return null;
+    }
+
+    public Flux<String> exception_doOnError() {
+        //TODO catch the exception and propagate it down stream.
+        return Flux.just("A")
+                .doOnError(ex -> {
+
+                });
     }
 
     private Mono<List<String>> splitStringMono(String s) {

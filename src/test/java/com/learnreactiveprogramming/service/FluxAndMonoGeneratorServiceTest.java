@@ -155,4 +155,48 @@ public class FluxAndMonoGeneratorServiceTest {
                 .expectNext("A", "D", "B", "E", "C", "F")
                 .verifyComplete();
     }
+
+    @Test
+    void exception_flux() {
+        var flux = service.exception_flux();
+        StepVerifier.create(flux)
+                .expectNext("A", "B", "C")
+                .expectErrorMessage("Exception Occurred")
+                .verify();
+    }
+
+    @Test
+    void exception_onErrorReturn() {
+        var flux = service.exception_onErrorReturn();
+        StepVerifier.create(flux)
+                .expectNext("A", "B", "C", "D")
+                .verifyComplete();
+    }
+
+    @Test
+    void exception_onErrorResume() {
+        var e = new IllegalStateException("My illegal state exception");
+        var flux = service.exception_onErrorResume(e);
+        StepVerifier.create(flux)
+                .expectNext("A", "B", "C", "D", "E", "F")
+                .verifyComplete();
+    }
+
+    @Test
+    void exception_onErrorResume_1() {
+        var e = new RuntimeException("My runtime exception exception");
+        var flux = service.exception_onErrorResume(e);
+        StepVerifier.create(flux)
+                .expectNext("A", "B", "C")
+                .expectError(RuntimeException.class)
+                .verify();
+    }
+
+    @Test
+    void exception_onErrorContinue() {
+        var flux = service.exception_onErrorContinue();
+        StepVerifier.create(flux)
+                .expectNext("A", "C", "D")
+                .verifyComplete();
+    }
 }
