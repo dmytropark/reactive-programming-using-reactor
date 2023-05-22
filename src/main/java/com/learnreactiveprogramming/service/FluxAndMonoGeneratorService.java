@@ -20,8 +20,10 @@ public class FluxAndMonoGeneratorService {
 
     public Flux<String> namesFluxMap() {
         return Flux.fromIterable( List.of("alex", "ben", "chloe"))
+                .doOnNext(item -> System.out.println("1 My item = " + item))
                 .log()
-                .map(String::toUpperCase);
+                .map(String::toUpperCase)
+                .doOnNext(item -> System.out.println("2 My item = " + item));
     }
 
     public Mono<String> namesMono_map_filter(int stringLength) {
@@ -123,6 +125,22 @@ public class FluxAndMonoGeneratorService {
         return abcFlux.concatWith(defFlux);
     }
 
+    public Flux<String> mergeFlux() {
+        var abcFlux = Flux.just("A", "B", "C")
+                .doOnNext(item -> System.out.println("1 My item = " + item))
+                .doFinally(s -> System.out.println("1 inside doFinally = " + s))
+                .log()
+                .delayElements(Duration.ofMillis(100))
+                .doOnNext(item -> System.out.println("2 My item = " + item))
+                .doFinally(s -> System.out.println("2 inside doFinally = " + s))
+                .log();
+
+        var defFlux = Flux.just("D", "E", "F")
+                .delayElements(Duration.ofMillis(120));
+
+        return Flux.merge(abcFlux, defFlux);
+    }
+
     public Flux<String> concatWithMono() {
         var aMono = Mono.just("A");
         var bMono = Mono.just("B");
@@ -134,7 +152,6 @@ public class FluxAndMonoGeneratorService {
         var charList = List.of(charArray);
         return Mono.just(charList);
     }
-
 
     private Flux<String> splitString(String name) {
        var charArray = name.split("");

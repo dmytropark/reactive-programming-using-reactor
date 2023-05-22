@@ -147,4 +147,12 @@ public class FluxAndMonoGeneratorServiceTest {
                 .expectNext("A", "B")
                 .verifyComplete();
     }
+
+    @Test
+    void mergeFlux() {
+        var flux = service.mergeFlux();
+        StepVerifier.create(flux)
+                .expectNext("A", "D", "B", "E", "C", "F")
+                .verifyComplete();
+    }
 }
