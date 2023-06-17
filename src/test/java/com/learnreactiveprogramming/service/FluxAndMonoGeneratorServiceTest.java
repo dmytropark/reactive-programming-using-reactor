@@ -2,6 +2,7 @@ package com.learnreactiveprogramming.service;
 
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
+import reactor.core.publisher.Flux;
 import reactor.test.StepVerifier;
 
 import java.util.List;
@@ -12,8 +13,14 @@ public class FluxAndMonoGeneratorServiceTest {
 
     @Test
     void testFlux() {
-        service.namesFlux()
+        Flux<String> stringFlux = service.namesFlux();
+
+        stringFlux
                 .subscribe(name -> System.out.println("Name is: " + name));
+
+        stringFlux
+                .subscribe(name -> System.out.println("Name2 is: " + name));
+
         Assertions.assertTrue(true);
     }
 
@@ -29,6 +36,11 @@ public class FluxAndMonoGeneratorServiceTest {
         var nameMono = service.nameMono();
         StepVerifier.create(nameMono)
                 .expectNext("alex")
+                .expectNextCount(0)
+                .verifyComplete();
+
+        StepVerifier.create(nameMono)
+                .expectNext("alex1")
                 .expectNextCount(0)
                 .verifyComplete();
     }
