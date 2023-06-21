@@ -1,8 +1,10 @@
 package com.learnreactiveprogramming.service;
 
+import com.learnreactiveprogramming.exception.ReactorException;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
 import reactor.core.publisher.Flux;
+import reactor.core.publisher.Mono;
 import reactor.test.StepVerifier;
 
 import java.util.List;
@@ -209,6 +211,46 @@ public class FluxAndMonoGeneratorServiceTest {
         var flux = service.exception_onErrorContinue();
         StepVerifier.create(flux)
                 .expectNext("A", "C", "D")
+                .verifyComplete();
+    }
+
+    @Test
+    void exception_onErrorMap() {
+        var flux = service.exception_onErrorMap();
+        StepVerifier.create(flux)
+                .expectNext("A")
+                .expectError(ReactorException.class)
+                .verify();
+    }
+
+    @Test
+    void exception_doOnError() {
+        var flux = service.exception_doOnError();
+        StepVerifier.create(flux)
+                .expectNext("A", "B", "C")
+                .expectError(IllegalStateException.class)
+                .verify();
+    }
+
+    @Test
+    void exception_mono_onErrorMap() {
+        var e = new RuntimeException("My test exception!");
+        var mono = service.exception_mono_onErrorMap(e);
+        StepVerifier.create(mono)
+                .expectError(ReactorException.class)
+                .verify();
+    }
+
+    @Test
+    void exception_mono_onErrorContinue_1() {
+        StepVerifier.create(service.exception_mono_onErrorContinue("abc"))
+                .verifyComplete();
+    }
+
+    @Test
+    void exception_mono_onErrorContinue_2() {
+        StepVerifier.create(service.exception_mono_onErrorContinue("reactor"))
+                .expectNext("reactor")
                 .verifyComplete();
     }
 }

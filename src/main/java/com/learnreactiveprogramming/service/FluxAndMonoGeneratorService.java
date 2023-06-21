@@ -1,5 +1,6 @@
 package com.learnreactiveprogramming.service;
 
+import com.learnreactiveprogramming.exception.ReactorException;
 import lombok.extern.slf4j.Slf4j;
 import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
@@ -198,15 +199,47 @@ public class FluxAndMonoGeneratorService {
     }
 
     public Flux<String> exception_onErrorMap() {
-        //TODO catch the exception and transform it to some custom exception type.
-        return null;
+        return Flux.just("A", "B", "C")
+                .map(name -> {
+                    if (name.equals("B")) {
+                        throw new IllegalStateException("!!!Exception occured!!!");
+                    }
+
+                    return name;
+                })
+                .concatWith(Flux.just("D"))
+                .onErrorMap(ex -> {
+                    log.error("Exception is ", ex);
+                    return new ReactorException(ex, ex.getMessage());
+                })
+                .log();
+    }
+
+    public Mono<Object> exception_mono_onErrorMap(Exception e) {
+        return Mono.just("B")
+                .flatMap(item -> Mono.error(e))
+                .onErrorMap(ex -> new ReactorException(ex, "Exc occurred"));
+    }
+
+    public Mono<String> exception_mono_onErrorContinue(String input) {
+        return Mono.just(input)
+                .map(item -> {
+                    if (item.equals("abc")) {
+                        throw new RuntimeException("exception for input is =" + item);
+                    }
+
+                    return item;
+                })
+                .onErrorContinue((ex, item) -> {
+                    log.error("continue on exception for item = " + item, ex);
+                });
     }
 
     public Flux<String> exception_doOnError() {
-        //TODO catch the exception and propagate it down stream.
-        return Flux.just("A")
+        return Flux.just("A", "B", "C")
+                .concatWith(Flux.error(new IllegalStateException("Exception occured")))
                 .doOnError(ex -> {
-
+                    log.error("Exception is ", ex);
                 });
     }
 
