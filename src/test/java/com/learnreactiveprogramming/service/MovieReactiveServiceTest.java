@@ -10,6 +10,7 @@ import org.mockito.junit.jupiter.MockitoExtension;
 import reactor.core.publisher.Flux;
 import reactor.test.StepVerifier;
 
+import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.mockito.ArgumentMatchers.anyLong;
 import static org.mockito.ArgumentMatchers.isA;
 import static org.mockito.Mockito.times;
@@ -72,5 +73,47 @@ public class MovieReactiveServiceTest {
 
         verify(reviewService, times(4))
                 .retrieveReviewsFlux(isA(Long.class));
+    }
+
+    @Test
+    void getAllMovies() {
+        Mockito.when(movieInfoService.retrieveMoviesFlux())
+                .thenCallRealMethod();
+
+        Mockito.when(reviewService.retrieveReviewsFlux(anyLong()))
+                .thenCallRealMethod();
+
+        StepVerifier.create(movieReactiveService.getAllMovies())
+                .assertNext(movie -> {
+                    assertEquals(100l, movie.getMovie().getMovieInfoId());
+                })
+                .assertNext(movie -> {
+                    assertEquals(101l, movie.getMovie().getMovieInfoId());
+                })
+                .assertNext(movie -> {
+                    assertEquals(102l, movie.getMovie().getMovieInfoId());
+                })
+                .verifyComplete();
+    }
+
+    @Test
+    void getMovieById() {
+    }
+
+    @Test
+    void getMovieByIdV2() {
+        long movieId = 100l;
+
+        Mockito.when(movieInfoService.retrieveMovieInfoMonoUsingId(movieId))
+                .thenCallRealMethod();
+
+        Mockito.when(reviewService.retrieveReviewsFlux(movieId))
+                .thenCallRealMethod();
+
+        StepVerifier.create(movieReactiveService.getMovieByIdV2(movieId))
+                .assertNext(movie -> {
+                    assertEquals(100l, movie.getMovie().getMovieInfoId());
+                })
+                .verifyComplete();
     }
 }

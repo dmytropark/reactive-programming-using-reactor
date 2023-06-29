@@ -6,6 +6,7 @@ import lombok.AllArgsConstructor;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import reactor.core.publisher.Flux;
+import reactor.core.publisher.Mono;
 
 @RequiredArgsConstructor
 @Slf4j
@@ -35,6 +36,21 @@ public class MovieReactiveService {
                 })
                 .retry(numberOfTimes)
                 .log();
+    }
+
+    public Mono<Movie> getMovieById(long movieId) {
+        var movieInfoMono = movieInfoService.retrieveMovieInfoMonoUsingId(movieId);
+        var reviewsMono = reviewService.retrieveReviewsFlux(movieId)
+                .collectList();
+
+        return movieInfoMono.zipWith(reviewsMono, Movie::new);
+    }
+
+    public Mono<Movie> getMovieByIdV2(long movieId) {
+        return movieInfoService.retrieveMovieInfoMonoUsingId(movieId)
+                .flatMap(movieInfo -> reviewService.retrieveReviewsFlux(movieId)
+                        .collectList()
+                        .map(reviews -> new Movie(movieInfo, reviews)));
     }
 
 }

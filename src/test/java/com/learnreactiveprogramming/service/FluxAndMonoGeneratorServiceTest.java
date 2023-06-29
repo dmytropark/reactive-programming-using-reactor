@@ -253,4 +253,68 @@ public class FluxAndMonoGeneratorServiceTest {
                 .expectNext("reactor")
                 .verifyComplete();
     }
+
+    @Test
+    void mergeWithFlux() {
+        var flux = service.mergeWithFlux();
+        StepVerifier.create(flux)
+                .expectNext("A", "D", "B", "E", "C", "F")
+                .verifyComplete();
+    }
+
+    @Test
+    void mergeWithMono() {
+        var flux = service.mergeWithMono();
+        StepVerifier.create(flux)
+                .expectNext("A", "B")
+                .verifyComplete();
+    }
+
+    @Test
+    void mergeSequential() {
+        var flux = service.mergeSequential();
+        StepVerifier.create(flux)
+                .expectNext("A", "B", "C", "D", "E", "F")
+                .verifyComplete();
+    }
+
+    @Test
+    void namesFlux() {
+    }
+
+    @Test
+    void nameMono() {
+    }
+
+    @Test
+    void namesFlux_flatmap() {
+    }
+
+    @Test
+    void explore_zip() {
+        var flux = service.explore_zip();
+        StepVerifier.create(flux)
+                .expectNext("AD", "BE", "CF")
+                .verifyComplete();
+    }
+
+    @Test
+    void exception_mono_onErrorContinue() {
+    }
+
+    @Test
+    void explore_zipWith() {
+        var flux = service.explore_zipWith();
+        StepVerifier.create(flux)
+                .expectNext("AD", "BE", "CF")
+                .verifyComplete();
+    }
+
+    @Test
+    void explore_zipWith_mono() {
+        var mono = service.explore_zipWith_mono();
+        StepVerifier.create(mono)
+                .expectNext("AB")
+                .verifyComplete();
+    }
 }
