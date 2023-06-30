@@ -181,6 +181,10 @@ public class BackpressureTest {
         assertTrue(latch.await(5L, TimeUnit.SECONDS));
     }
 
+    /**
+     * Handle case when producer has more messages than consumer want to receive.
+     *
+     */
     @Test
     void testBackPressure_error() throws InterruptedException {
         var numberRange = Flux.range(1,100).log();
