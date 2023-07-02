@@ -7,13 +7,16 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
+import reactor.core.scheduler.Schedulers;
 
 @RequiredArgsConstructor
+@AllArgsConstructor
 @Slf4j
 public class MovieReactiveService {
 
     private final MovieInfoService movieInfoService;
     private final ReviewService reviewService;
+    private RevenueService revenueService;
 
     public Flux<Movie> getAllMovies() {
         return movieInfoService.retrieveMoviesFlux()
@@ -51,6 +54,21 @@ public class MovieReactiveService {
                 .flatMap(movieInfo -> reviewService.retrieveReviewsFlux(movieId)
                         .collectList()
                         .map(reviews -> new Movie(movieInfo, reviews)));
+    }
+
+    public Mono<Movie> getMovieById_withRevenue(long movieId) {
+        var movieInfoMono = movieInfoService.retrieveMovieInfoMonoUsingId(movieId);
+        var reviewsMono = reviewService.retrieveReviewsFlux(movieId)
+                .collectList();
+
+        var revenueMono = Mono.fromCallable(() ->  revenueService.getRevenue(movieId))
+                .subscribeOn(Schedulers.boundedElastic());
+
+        return movieInfoMono.zipWith(reviewsMono, Movie::new)
+                .zipWith(revenueMono, (movie, revenue) -> {
+                    movie.setRevenue(revenue);
+                    return movie;
+                });
     }
 
 }

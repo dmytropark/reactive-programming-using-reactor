@@ -1,5 +1,6 @@
 package com.learnreactiveprogramming.service;
 
+import com.learnreactiveprogramming.domain.Movie;
 import com.learnreactiveprogramming.exception.MovieException;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -8,9 +9,11 @@ import org.mockito.Mock;
 import org.mockito.Mockito;
 import org.mockito.junit.jupiter.MockitoExtension;
 import reactor.core.publisher.Flux;
+import reactor.core.publisher.Mono;
 import reactor.test.StepVerifier;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.mockito.ArgumentMatchers.anyLong;
 import static org.mockito.ArgumentMatchers.isA;
 import static org.mockito.Mockito.times;
@@ -22,6 +25,7 @@ public class MovieReactiveServiceTest {
     MovieInfoService movieInfoService;
     @Mock
     ReviewService reviewService;
+
     @InjectMocks
     MovieReactiveService movieReactiveService;
 
@@ -113,6 +117,30 @@ public class MovieReactiveServiceTest {
         StepVerifier.create(movieReactiveService.getMovieByIdV2(movieId))
                 .assertNext(movie -> {
                     assertEquals(100l, movie.getMovie().getMovieInfoId());
+                })
+                .verifyComplete();
+    }
+
+    @Test
+    void getMovieById_withRevenue() {
+        long movieId = 100l;
+
+        Mockito.when(movieInfoService.retrieveMovieInfoMonoUsingId(movieId))
+                .thenCallRealMethod();
+
+        Mockito.when(reviewService.retrieveReviewsFlux(movieId))
+                .thenCallRealMethod();
+
+        var revenueService = new RevenueService();
+
+        Mono<Movie> publisher = new MovieReactiveService(movieInfoService, reviewService, revenueService)
+                .getMovieById_withRevenue(movieId)
+                .log();
+
+        StepVerifier.create(publisher)
+                .assertNext(movie -> {
+                    assertEquals(100l, movie.getMovie().getMovieInfoId());
+                    assertNotNull(movie.getRevenue());
                 })
                 .verifyComplete();
     }
