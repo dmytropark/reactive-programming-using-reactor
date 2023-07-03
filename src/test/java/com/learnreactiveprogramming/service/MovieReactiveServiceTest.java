@@ -36,7 +36,7 @@ public class MovieReactiveServiceTest {
         Mockito.when(movieInfoService.retrieveMoviesFlux())
                 .thenReturn(
                         originMovieInfoService.retrieveMoviesFlux()
-                                .concatWith(Flux.error(new RuntimeException("!!!Second Exception")))
+                                .concatWith(Flux.error(new RuntimeException("!!! Exception from first service")))
                 );
 
         Mockito.when(reviewService.retrieveReviewsFlux(anyLong())).thenCallRealMethod();

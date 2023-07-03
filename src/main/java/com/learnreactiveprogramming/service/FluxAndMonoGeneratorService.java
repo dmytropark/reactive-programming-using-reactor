@@ -8,7 +8,10 @@ import reactor.core.publisher.Mono;
 import java.time.Duration;
 import java.util.List;
 import java.util.Random;
+import java.util.concurrent.CompletableFuture;
 import java.util.function.Function;
+
+import static com.learnreactiveprogramming.util.CommonUtil.delay;
 
 @Slf4j
 public class FluxAndMonoGeneratorService {
@@ -295,6 +298,61 @@ public class FluxAndMonoGeneratorService {
                 .doOnError(ex -> {
                     log.error("Exception is ", ex);
                 });
+    }
+
+    public Flux<Integer> explore_generate() {
+        Flux<Integer> generate = Flux.generate(() -> 1, (state, sink) -> {
+            sink.next(state * 3);
+
+            if (state == 10) {
+                sink.complete();
+            }
+
+            return state + 1;
+        });
+
+        return generate.log();
+    }
+
+    /**
+     * Used to bridge an existing API into the Reactive World. Its asynchronous and multithreaded.
+     * We can generate/emit events from multiple threads.
+     */
+    public Flux<String> explore_create() {
+        return Flux.create(sink -> CompletableFuture.supplyAsync(this::names)
+                .thenAccept(names -> names.forEach(sink::next))
+                .thenRun(sink::complete));
+    }
+
+    public Mono<String> explore_create_mono() {
+        return Mono.create(sink -> sink.success("alex"));
+    }
+
+    /**
+     * do a filter and map at one!
+     */
+    public Flux<String> explore_handle() {
+        return Flux.fromIterable(names())
+                .handle((name, sink) -> {
+                    if (name.length() > 3) {
+                        sink.next(name.toUpperCase());
+                    }
+                });
+    }
+
+    public Flux<String> exception_onErrorMap(Exception e) {
+        return Flux.just("A")
+                .concatWith(Flux.error(e))
+                .onErrorMap(ex -> {
+                    log.error("Exception is ", ex);
+                    return new ReactorException(ex, ex.getMessage());
+                })
+                .log();
+    }
+
+    private List<String> names() {
+        delay(1000);
+        return List.of("alex", "ban", "chloe");
     }
 
     private Mono<List<String>> splitStringMono(String s) {

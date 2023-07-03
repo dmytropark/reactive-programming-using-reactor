@@ -4,6 +4,7 @@ import com.learnreactiveprogramming.exception.ReactorException;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
 import reactor.core.publisher.Flux;
+import reactor.core.publisher.Hooks;
 import reactor.core.publisher.Mono;
 import reactor.test.StepVerifier;
 
@@ -316,5 +317,41 @@ public class FluxAndMonoGeneratorServiceTest {
         StepVerifier.create(mono)
                 .expectNext("AB")
                 .verifyComplete();
+    }
+
+    @Test
+    void explore_generate() {
+        var flux = service.explore_generate();
+        StepVerifier.create(flux)
+                .expectNextCount(10)
+                .verifyComplete();
+    }
+
+    @Test
+    void explore_create() {
+        var flux = service.explore_create().log();
+        StepVerifier.create(flux)
+                .expectNextCount(3)
+                .verifyComplete();
+    }
+
+    @Test
+    void explore_create_mono() {
+    }
+
+    @Test
+    void explore_handle() {
+    }
+
+    @Test
+    void explore_onErrorMap_onOperatorDebug() {
+        Hooks.onOperatorDebug();
+        var e = new RuntimeException("Not a valid state");
+
+        var flux = service.exception_onErrorMap(e).log();
+        StepVerifier.create(flux)
+                .expectNext("A")
+                .expectError(ReactorException.class)
+                .verify();
     }
 }
